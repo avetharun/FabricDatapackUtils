@@ -17,10 +17,11 @@ Installation
 ============
 To get started with Fabric Datapack Utils, you'll need to have Fabric Loader and Fabric API installed.
 Features
-========
+============
 
 Fabric Datapack Utils offers several features to enhance your Minecraft gameplay:
 
+- `Additional options for Item Models`
 - ``
 Usage and Examples
 =================

@@ -28,7 +28,7 @@ Usage and Examples
 
 For detailed information on how to use each feature of the Fabric Datapack Utils library, refer to the following sections:
 
-- `Additional overrides for Resource Pack Item Models  <item_model_overrides.rst>`_
+- `Additional overrides for Resource Pack Item Models  <item_model_overrides>`_
 Contributing
 ============
 

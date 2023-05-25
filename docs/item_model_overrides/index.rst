@@ -10,6 +10,10 @@ Additional Item Model Overrides
 	*boolean* - Shows override only in the hotbar. Does not include inventory.
 - is_dropped : 
 	*boolean* - Shows override only if the item is dropped (On the ground)
+- use_time :
+    *float* - Shows override with the following formula: maxUseTime - useTimeLeft
+- is_using :
+    *boolean* - Shows only if the item is being used (right clicked)
 Example:
 ::
 	"overrides": [

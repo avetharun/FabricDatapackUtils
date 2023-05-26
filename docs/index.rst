@@ -16,19 +16,13 @@ Welcome to the documentation for Fabric Datapack Utils! This mod is designed to 
 Installation
 ============
 To get started with Fabric Datapack Utils, you'll need to have Fabric Loader and Fabric API installed.
-Features
-============
-
-DPU offers several features to enhance your Minecraft gameplay:
-
-- `Additional options for Item Models`
-- ``
 Usage and Examples
 =================
 
 For detailed information on how to use each feature of the Fabric Datapack Utils library, refer to the following sections:
 
 - `Additional overrides for Resource Pack Item Models  <item_model_overrides>`_
+- `Item events  <api/events>`_
 Contributing
 ============
 

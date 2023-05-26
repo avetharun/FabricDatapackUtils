@@ -15,34 +15,36 @@ The following will only run on the client, which needs to be put in a Resource P
 assets/minecraft/events/on_use/itemname.json:
 ::
   {
-  "sound": {
-    "id": "minecraft:block.amethyst_cluster.break",
-    "volume": 0.8,
-    "pitch": 1.0
-  },
-  "particle": {
-    "id": "minecraft:bubble_pop",
-    "offset": [
-      1,1,1
-    ]
+    "sound": {
+      "id": "minecraft:block.amethyst_cluster.break",
+      "volume": 0.8,
+      "pitch": 1.0
+    },
+    "particle": {
+      "id": "minecraft:bubble_pop",
+      "offset": [
+        1,1,1
+      ]
+    }
   }
-}
 
 **Server Side Event**
 The following will only run on the server, which needs to be put in a Data Pack.
 data/minecraft/events/on_use/itemname.json:
 ::
   {
-  "function":"some:function",
-  "sound": {
-    "id": "minecraft:block.amethyst_cluster.step",
-    "volume": 0.8,
-    "pitch": 1.0
-  },
-  "particle": {
-    "id": "minecraft:poof",
-    "offset": [
-      1,1,1
-    ]
+    "function":"some:function",
+    "sound": {
+      "id": "minecraft:block.amethyst_cluster.step",
+      "volume": 0.8,
+      "pitch": 1.0
+    },
+    "particle": {
+      "id": "minecraft:poof",
+      "offset": [
+        1,1,1
+      ]
+    }
   }
-}
+
+

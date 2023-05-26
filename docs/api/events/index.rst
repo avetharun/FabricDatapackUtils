@@ -12,7 +12,8 @@ The following applies to all event files:
 The other paramaters are just there for documentation, the "id" paramater is the only required one for the built-in events.
 
 
-**Client Side Event**
+Client Side Event
+=======
 The following will only run on the client, which needs to be put in a Resource Pack.
 assets/minecraft/events/on_use/itemname.json:
 ::
@@ -30,7 +31,8 @@ assets/minecraft/events/on_use/itemname.json:
     }
   }
 
-**Server Side Event**
+Server Side Event
+=======
 The following will only run on the server, which needs to be put in a Data Pack.
 data/minecraft/events/on_use/itemname.json:
 ::
@@ -48,6 +50,7 @@ data/minecraft/events/on_use/itemname.json:
       ]
     }
   }
+If your event includes the function part, you can use the @s selector to do something with the player that ran the event.
 
 
 

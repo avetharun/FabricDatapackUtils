@@ -48,4 +48,4 @@ data/minecraft/events/on_use/itemname.json:
   }
 
 
-If you would like to create your own event type, refer to - `Creating a custom event type <api/events/adding_custom_events>`_
+If you would like to create your own event type, refer to - `Creating a custom event type <adding_custom_events>`_

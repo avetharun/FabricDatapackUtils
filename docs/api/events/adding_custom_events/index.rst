@@ -3,7 +3,7 @@ Adding custom events
 The following requires the mod to be included in your mod's dependencies.
 
 Create an event class:
-..  code-block:: php
+::
    public class CustomEvent extends DPUEvent{
       CustomEvent(JsonObject object) {super(object);}
       

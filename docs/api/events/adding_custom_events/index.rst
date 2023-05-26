@@ -22,15 +22,8 @@ Register the class:
   
   public static final DPUEventType MY_CUSTOM_EVENT = Registry.register(DPU.EVENT_TYPE, new Identifier("custom_event"), new DPUEventType(CustomEvent.class));
 
+Now, you need to `create an event file  </api/events>`_
 
-Create an event file:
-*Supported event types are ONLY items*
-The following example event file will spawn a particle and play a sound when the event is fired:
-::
-  {
-      
-  }
-  
 You should now have a working event. Remember to invoke the event with the following: 
 ::
   // Inside some function, for example, an item's use function:

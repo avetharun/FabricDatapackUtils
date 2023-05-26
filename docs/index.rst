@@ -16,6 +16,7 @@ Welcome to the documentation for Fabric Datapack Utils! This mod is designed to 
 Installation
 ============
 To get started with Fabric Datapack Utils, you'll need to have Fabric Loader and Fabric API installed.
+
 Usage and Examples
 =================
 

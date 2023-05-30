@@ -1,6 +1,18 @@
 Adding an event to an item:
 ===============
-*At the moment, only item use event is supported. Support for more events will come soon (5/25/23)
+
+Event types:
+
+- on_use : On use item
+
+- on_interact_block : On interact with block
+
+- on_swing : On swinging hand (or item)
+
+- on_attack_entity : On entity attacked (by player)
+
+- on_interact_entity : On interact with entity (by player)
+
 
 A few example events will be supplied, though they can be changed and modified by `Creating a custom event type <adding_custom_events>`_
 The following applies to all event files:

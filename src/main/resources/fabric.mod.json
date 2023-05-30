@@ -19,6 +19,9 @@
     ],
     "main": [
       "com.feintha.dpu.DatapackUtils"
+    ],
+    "fabric-datagen": [
+      "DataGeneration"
     ]
   },
   "mixins": [

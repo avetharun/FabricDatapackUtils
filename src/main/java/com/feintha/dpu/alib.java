@@ -2,12 +2,14 @@ package com.feintha.dpu;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.TagKey;
+import net.minecraft.resource.*;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -17,6 +19,8 @@ import net.minecraft.world.World;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -31,6 +35,7 @@ import java.util.zip.CRC32;
 
 @SuppressWarnings("unused")
 public class alib {
+
     public static <F,T> F getMixinField(T mixinType, String fieldName) {
         try {
             Field f = mixinType.getClass().getField(fieldName);
@@ -70,10 +75,11 @@ public class alib {
             throw new RuntimeException(e);
         }
     }
-    public static <T> void runMixinMethod(T mixinType, String methodName, Object args) {
+    public static <T, R> R runMixinMethod(T mixinType, String methodName, Object ... args) {
         try {
             Method f = mixinType.getClass().getMethod(methodName);
-            f.invoke(mixinType);
+            //noinspection unchecked
+            return (R) f.invoke(mixinType, args);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -191,6 +197,10 @@ public class alib {
     public static long[] getBlockPosAsArray(BlockPos d) {
         if (d == null) {return new long[]{0, 0, 0};}
         return new long[]{d.getX(), d.getY(), d.getZ()};
+    }
+    public static double[] getVec3dAsArray(Vec3d d) {
+        if (d == null) {return new double[]{0d, 0d, 0d};}
+        return new double[]{d.getX(), d.getY(), d.getZ()};
     }
     public static Pair<Integer, Integer> XYPosFromOffset(int w, int offset) {
         assert w != 0;

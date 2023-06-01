@@ -21,9 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -201,6 +199,16 @@ public class alib {
     public static double[] getVec3dAsArray(Vec3d d) {
         if (d == null) {return new double[]{0d, 0d, 0d};}
         return new double[]{d.getX(), d.getY(), d.getZ()};
+    }
+    public static Class<?> getFunctionTemplateClass(Object object, int index) {
+        Type genericInterface = object.getClass().getGenericInterfaces()[0];
+        if (genericInterface instanceof ParameterizedType parameterizedType) {
+            Type[] typeArguments = parameterizedType.getActualTypeArguments();
+            if (index >= 0 && index < typeArguments.length) {
+                return (Class<?>) typeArguments[index];
+            }
+        }
+        throw new IllegalArgumentException("Index out of bounds or template not found.");
     }
     public static Pair<Integer, Integer> XYPosFromOffset(int w, int offset) {
         assert w != 0;

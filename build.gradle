@@ -65,13 +65,23 @@ jar {
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}"}
     }
+    from("mvn/") {
+        include("*.pom")
+    }
 }
 
 // configure the maven publication
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            groupId = 'com.feintha'
+            artifactId = 'dpu'
+            version = "${project.version}"
             from components.java
+            pom {
+                name = 'DatapackUtils'
+                description = 'Utilities for modders to add and modify specific portions of Minecraft\'s datapack and resource-pack system'
+            }
         }
     }
 

@@ -24,33 +24,41 @@ public class BooleanModelOverride implements ClampedModelPredicateProvider {
         return alib.getMixinField(stack, "transformationMode");
     }
     public static boolean isRenderingInGUI(ItemStack stack) {
-        return (boolean)alib.getMixinField(stack, "isBeingRenderedInHotbar") || (alib.getMixinField(stack, "transformationMode") == ModelTransformationMode.GUI);
+        ModelTransformationMode m = alib.getMixinField(stack, "transformationMode");
+        if (m == null) {return false;}
+        boolean bl1 = alib.getMixinField(stack, "isBeingRenderedInHotbar");
+        return bl1 || m == ModelTransformationMode.GUI;
     }
     public static boolean isRenderingInHotbar(ItemStack stack) {
         return alib.getMixinField(stack, "isBeingRenderedInHotbar");
     }
     public static boolean isRenderingInHandFirst(ItemStack stack) {
         ModelTransformationMode m = alib.getMixinField(stack, "transformationMode");
+        if (m == null) {return false;}
         boolean bl1 = alib.getMixinField(stack, "isBeingRenderedInHotbar");
         return !bl1 && m.isFirstPerson();
     }
     public static boolean isRenderingInHandThird(ItemStack stack) {
         ModelTransformationMode m = alib.getMixinField(stack, "transformationMode");
+        if (m == null) {return false;}
         boolean bl1 = alib.getMixinField(stack, "isBeingRenderedInHotbar");
         return !bl1 && (m == ModelTransformationMode.THIRD_PERSON_LEFT_HAND || m == ModelTransformationMode.THIRD_PERSON_RIGHT_HAND);
     }
     public static boolean isRenderingInHandAny(ItemStack stack) {
         ModelTransformationMode m = alib.getMixinField(stack, "transformationMode");
+        if (m == null) {return false;}
         boolean bl1 = alib.getMixinField(stack, "isBeingRenderedInHotbar");
         return !bl1 && (m == ModelTransformationMode.THIRD_PERSON_LEFT_HAND || m == ModelTransformationMode.THIRD_PERSON_RIGHT_HAND || m.isFirstPerson());
     }
     public static boolean isRenderingInFixedPos(ItemStack stack) {
         ModelTransformationMode m = alib.getMixinField(stack, "transformationMode");
+        if (m == null) {return false;}
         boolean bl1 = alib.getMixinField(stack, "isBeingRenderedInHotbar");
         return !bl1 && m == ModelTransformationMode.FIXED;
     }
     public static boolean isRenderingAsDropped(ItemStack stack) {
         ModelTransformationMode m = alib.getMixinField(stack, "transformationMode");
+        if (m == null) {return false;}
         boolean bl1 = alib.getMixinField(stack, "isBeingRenderedInHotbar");
         return !bl1 && m == ModelTransformationMode.GROUND;
     }

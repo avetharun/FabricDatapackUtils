@@ -37,12 +37,12 @@ public class BooleanModelOverride implements ClampedModelPredicateProvider {
     public static boolean isRenderingInHandThird(ItemStack stack) {
         ModelTransformationMode m = alib.getMixinField(stack, "transformationMode");
         boolean bl1 = alib.getMixinField(stack, "isBeingRenderedInHotbar");
-        return !bl1 && m == ModelTransformationMode.THIRD_PERSON_LEFT_HAND || m == ModelTransformationMode.THIRD_PERSON_RIGHT_HAND;
+        return !bl1 && (m == ModelTransformationMode.THIRD_PERSON_LEFT_HAND || m == ModelTransformationMode.THIRD_PERSON_RIGHT_HAND);
     }
     public static boolean isRenderingInHandAny(ItemStack stack) {
         ModelTransformationMode m = alib.getMixinField(stack, "transformationMode");
         boolean bl1 = alib.getMixinField(stack, "isBeingRenderedInHotbar");
-        return !bl1 && m == ModelTransformationMode.THIRD_PERSON_LEFT_HAND || m == ModelTransformationMode.THIRD_PERSON_RIGHT_HAND || m.isFirstPerson();
+        return !bl1 && (m == ModelTransformationMode.THIRD_PERSON_LEFT_HAND || m == ModelTransformationMode.THIRD_PERSON_RIGHT_HAND || m.isFirstPerson());
     }
     public static boolean isRenderingInFixedPos(ItemStack stack) {
         ModelTransformationMode m = alib.getMixinField(stack, "transformationMode");

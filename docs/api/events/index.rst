@@ -1,6 +1,11 @@
 Event Handling
 =========
 
+Event files should (normally) match the criteria of eventt (ie, on_use would use the item name) though some events (global events) run anything under the event_name folder.
+
+If you want to forcibly run something every time an event is fired, regardless of the filename, use a wildcard (*)
+
+
 
 Client Side Events
 ------

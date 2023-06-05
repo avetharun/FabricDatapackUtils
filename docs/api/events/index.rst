@@ -57,6 +57,8 @@ assets/minecraft/events/on_sneak/anynamehere.json:
     }
    }
 
+- `All global events  <api/events/global>`_
+
 
 
 
@@ -73,5 +75,7 @@ assets/minecraft/events/on_use/itemname.json:
       "pitch": 1.0
     }
    }
+
+- `All item events  <api/events/global>`_
 
 

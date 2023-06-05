@@ -4,9 +4,10 @@ These kinds of events are for actions a player or entity does (for example, crou
 
 
 Names of event files (ie, eventname.json) do not matter, as it will execute any file under the event_name/ path.
-----
 
-Valid events as of version 1.0.2+:
+
+Valid events as of version 1.0.2:
+-----
 
 - on_sneak
 

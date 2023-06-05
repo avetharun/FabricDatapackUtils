@@ -4,7 +4,7 @@ Event Handling
 
 Client Side Events
 ------
-The following will only run on the client, which needs to be put in a Resource Pack.
+The following will only run on the client, which needs to be put in a Resource Pack (assets/ folder).
 ::
   {
     "sound": {
@@ -22,7 +22,7 @@ The following will only run on the client, which needs to be put in a Resource P
 
 Server Side Events
 ------
-The following will only run on the server, which needs to be put in a Data Pack.
+The following will only run on the server, which needs to be put in a Data Pack (data/ folder).
 ::
   {
     "function":"some:function",
@@ -47,15 +47,14 @@ If your event includes the function part, you can use the @s selector to do some
 Adding a global event:
 ==============
 
-assets/minecraft/events/on_sneak/anynamehere.json:
-::
-   {
-    "sound": {
-      "id": "minecraft:block.amethyst_cluster.break",
-      "volume": 0.8,
-      "pitch": 1.0
-    }
-   }
+minecraft/events/on_sneak/anynamehere.json
+
+- `All global events  <api/events/global>`_
+
+
+Adding an entity interaction event:
+==============
+minecraft/events/on_attack_entity/entity_name.json
 
 - `All global events  <api/events/global>`_
 
@@ -66,15 +65,7 @@ assets/minecraft/events/on_sneak/anynamehere.json:
 Adding an event to an item:
 ===============
 
-assets/minecraft/events/on_use/itemname.json:
-::
-   {
-    "sound": {
-      "id": "minecraft:block.amethyst_cluster.break",
-      "volume": 0.8,
-      "pitch": 1.0
-    }
-   }
+minecraft/events/on_use/itemname.json
 
 - `All item events  <api/events/global>`_
 

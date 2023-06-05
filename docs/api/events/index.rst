@@ -56,7 +56,7 @@ Adding an entity interaction event:
 ==============
 minecraft/events/on_attack_entity/entity_name.json
 
-- `All global events  </api/events/global>`_
+- `All global events  </api/events/entity>`_
 
 
 
@@ -67,6 +67,6 @@ Adding an event to an item:
 
 minecraft/events/on_use/itemname.json
 
-- `All item events  </api/events/global>`_
+- `All item events  </api/events/item>`_
 
 

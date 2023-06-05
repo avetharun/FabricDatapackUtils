@@ -7,10 +7,15 @@ Names of event files (ie, eventname.json) do not matter, as it will execute any 
 ----
 
 Valid events as of version 1.0.2+:
+
 - on_sneak
+
 - on_jump
+
 - on_eat_begin
+
 - on_eat_end
+
 - on_shield_block
 
 

@@ -25,7 +25,7 @@ For detailed information on how to use each feature of the Fabric Datapack Utils
 - `Additional overrides for Resource Pack Item Models  <item_model_overrides>`_
 - `Event handling  <api/events>`_
 - `Custom Event type <api/events/adding_custom_events>`_
-- `String handling  <api/strings>`_
+- `String handling  <api/commands/string>`_
 Contributing
 ============
 

@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleType;
@@ -66,7 +67,7 @@ public class DPUEvent {
             MinecraftClient.getInstance().world.addParticle((ParticleEffect) particle, pOff.x, pOff.y, pOff.z, 0, 0, 0);
         }
     }
-    protected final void handleServerParticles(ServerWorld world, PlayerEntity owner){
+    protected final void handleServerParticles(ServerWorld world, Entity owner){
         if (particle != null) {
             Vec3d pos = owner.getEyePos();
             Vec3d rot = owner.getRotationVector();
@@ -74,33 +75,37 @@ public class DPUEvent {
             world.addParticle((ParticleEffect) particle, true, pOff.x, pOff.y, pOff.z, 0, 0, 0);
         }
     }
-    protected final void handleServerParticlesAt(ServerWorld world, PlayerEntity owner, Vec3d pos){
+    protected final void handleServerParticlesAt(ServerWorld world, Entity owner, Vec3d pos){
         if (particle != null) {
             Vec3d pOff = ParticleOffset.add(pos);
             world.addParticle((ParticleEffect) particle, true, pOff.x, pOff.y, pOff.z, 0, 0, 0);
         }
     }
-    protected final void handleFunction(ServerWorld world, ServerPlayerEntity owner) {
+    protected final void handleFunction(ServerWorld world, Entity owner) {
         if (function != null) {
             var func = world.getServer().getCommandFunctionManager().getFunction(function);
             if (func.isPresent()) {
-                world.getServer().getCommandFunctionManager().execute(func.get(), owner.getCommandSource());
+                if (owner == null || !owner.isPlayer()) {
+                    world.getServer().getCommandFunctionManager().execute(func.get(), world.getServer().getCommandSource());
+                } else {
+                    world.getServer().getCommandFunctionManager().execute(func.get(), owner.getCommandSource());
+                }
             } else {
-                System.out.println("Unable to execute function " + function + " when using item event.");
+                System.out.println("Unable to execute function " + function + " when using event.");
             }
         }
     }
-    protected final void handleFunctionAt(ServerWorld world, ServerPlayerEntity owner, Vec3d pos) {
+    protected final void handleFunctionAt(ServerWorld world, Entity owner, Vec3d pos) {
         if (function != null) {
             var func = world.getServer().getCommandFunctionManager().getFunction(function);
             if (func.isPresent()) {
-                if (owner == null) {
+                if (owner == null || !owner.isPlayer()) {
                     world.getServer().getCommandFunctionManager().execute(func.get(), world.getServer().getCommandSource().withPosition(pos));
                 } else {
                     world.getServer().getCommandFunctionManager().execute(func.get(), owner.getCommandSource().withPosition(pos));
                 }
             } else {
-                System.out.println("Unable to execute function " + function + " when using item event.");
+                System.out.println("Unable to execute function " + function + " when using event.");
             }
         }
     }
@@ -113,13 +118,13 @@ public class DPUEvent {
             MinecraftClient.getInstance().world.playSound(pos.x, pos.y - 0.25f, pos.z, sound, SoundCategory.MASTER, SoundVolume, SoundPitch, true);
         }
     }
-    protected final void handleServerSound(ServerWorld w, PlayerEntity owner){
+    protected final void handleServerSound(ServerWorld w, Entity owner){
         if (sound != null) {
             Vec3d pos = owner.getEyePos();
             w.playSound(null, pos.x, pos.y - 0.25f, pos.z, sound, SoundCategory.MASTER, SoundVolume, SoundPitch);
         }
     }
-    protected final void handleServerSoundAt(ServerWorld w, PlayerEntity owner, Vec3d pos){
+    protected final void handleServerSoundAt(ServerWorld w, Entity owner, Vec3d pos){
         if (sound != null) {
             w.playSound(null, pos.x, pos.y - 0.25f, pos.z, sound, SoundCategory.MASTER, SoundVolume, SoundPitch);
         }
@@ -132,15 +137,34 @@ public class DPUEvent {
         handleSound();
         handleParticles();
     }
-    public void doActionServer(ServerWorld world, PlayerEntity owner) {
-        handleFunction(world, (ServerPlayerEntity) owner);
-        handleServerSound(world,owner);
-        handleServerParticles(world,owner);
+    public void doActionServer(ServerWorld world) {
+        DatapackUtils.ScheduleForNextTick((s) -> {
+            handleFunction(world, null);
+            handleServerSound(world, null);
+            handleServerParticles(world, null);
+        });
     }
-    public void doActionServerAt(ServerWorld world, PlayerEntity owner, Vec3d pos) {
-        handleFunctionAt(world, (ServerPlayerEntity) owner, pos);
-        handleServerSoundAt(world,owner, pos);
-        handleServerParticlesAt(world,owner, pos);
+    public void doActionServerAt(ServerWorld world, Vec3d pos) {
+        DatapackUtils.ScheduleForNextTick((s) -> {
+            handleFunctionAt(world, null, pos);
+            handleServerSoundAt(world, null, pos);
+            handleServerParticlesAt(world, null, pos);
+        });
+
+    }
+    public void doActionServer(ServerWorld world, Entity owner) {
+        DatapackUtils.ScheduleForNextTick((s) -> {
+            handleFunction(world, owner);
+            handleServerSound(world, owner);
+            handleServerParticles(world, owner);
+        });
+    }
+    public void doActionServerAt(ServerWorld world, Entity owner, Vec3d pos) {
+        DatapackUtils.ScheduleForNextTick((s) -> {
+            handleFunctionAt(world, owner, pos);
+            handleServerSoundAt(world, owner, pos);
+            handleServerParticlesAt(world, owner, pos);
+        });
 
     }
     @SuppressWarnings("UnusedReturnValue")

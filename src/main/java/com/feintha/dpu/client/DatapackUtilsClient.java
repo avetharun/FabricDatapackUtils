@@ -61,7 +61,7 @@ public class DatapackUtilsClient implements ClientModInitializer {
             worldTick++;
         });
         ClientTickEvents.END_CLIENT_TICK.register(world -> {
-            worldTick++;
+            clientTick++;
         });
         DPU.InitClientEvents();
     }

@@ -1,10 +1,12 @@
 package com.feintha.dpu;
 
 import com.google.gson.JsonParser;
+import com.mojang.datafixers.util.Function3;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -19,10 +21,35 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Function;
 
 public class DPU {
+    public static class DPUWorkerThread_T extends Thread{
+        public DPUWorkerThread_T(int id) {
+            super("DPUWorkerThread" + id);
+        }
+        public Function<Object, Object> currentMethod;
+        public Object data;
+        private boolean completed = false;
+        public boolean isCompleted() { return completed; }
+        public boolean isBusy() { return !completed; }
+
+        @Override
+        public void run() {
+            super.run();
+            completed = false;
+            currentMethod.apply(data);
+            completed = true;
+        }
+    }
+    public static ThreadPoolExecutor DPUWorkerThreads;
     public static final RegistryKey<Registry<DPUEventType>> EVENT_TYPE_KEYS = RegistryKey.ofRegistry(new Identifier("dpu", "eventtypes"));
     public static final Registry<DPUEventType> EVENT_TYPE = FabricRegistryBuilder.createSimple(EVENT_TYPE_KEYS).buildAndRegister();
     public static void InitEverything() {
@@ -30,33 +57,54 @@ public class DPU {
         for (var entry : EVENT_TYPE.getEntrySet()) {
             entry.getValue().Events.clear();
         }
+        DPUWorkerThreads = (ThreadPoolExecutor) Executors.newFixedThreadPool(8);
     }
     public static void InvokeClientEventFor(DPUEventType type, Identifier idToRun) {
         Identifier id = new Identifier("cl_"+idToRun.getNamespace(), idToRun.getPath());
+        Identifier idStar = new Identifier("cl_"+idToRun.getNamespace(), "--");
         DPUEvent action = type.getSubEvent(id);
+        DPUEvent actionS = type.getSubEvent(idStar);
         if (action != null) {
             action.doActionClient();
         }
+        if (actionS != null) {
+            actionS.doActionClient();
+        }
     }
-    public static void InvokeServerEventFor(DPUEventType type, Identifier idToRun, ServerWorld world, @NotNull PlayerEntity owner) {
+    public static void InvokeServerEventFor(DPUEventType type, Identifier idToRun, ServerWorld world, @NotNull Entity owner) {
         Identifier id = new Identifier("sv_"+idToRun.getNamespace(), idToRun.getPath());
+        Identifier idStar = new Identifier("sv_"+idToRun.getNamespace(), "--");
         DPUEvent action = type.getSubEvent(id);
+        DPUEvent actionS = type.getSubEvent(idStar);
         if (action != null) {
             action.doActionServer(world, owner);
+        }
+        if (actionS != null) {
+            actionS.doActionServer(world,owner);
         }
     }
     public static void InvokeClientEventForAt(DPUEventType type, Identifier idToRun, Vec3d pos) {
         Identifier id = new Identifier("cl_"+idToRun.getNamespace(), idToRun.getPath());
+        Identifier idStar = new Identifier("cl_"+idToRun.getNamespace(), "--");
         DPUEvent action = type.getSubEvent(id);
+        DPUEvent actionS = type.getSubEvent(idStar);
         if (action != null) {
             action.doActionClientAt(pos);
         }
+        if (actionS != null) {
+            actionS.doActionClientAt(pos);
+        }
     }
-    public static void InvokeServerEventForAt(DPUEventType type, Identifier idToRun, Vec3d pos, ServerWorld world, PlayerEntity owner) {
+    public static void InvokeServerEventForAt(DPUEventType type, Identifier idToRun, Vec3d pos, ServerWorld world, Entity owner) {
         Identifier id = new Identifier("sv_"+idToRun.getNamespace(), idToRun.getPath());
+        Identifier idStar = new Identifier("sv_"+idToRun.getNamespace(), "--");
         DPUEvent action = type.getSubEvent(id);
+        DPUEvent actionS = type.getSubEvent(idStar);
         if (action != null) {
             action.doActionServerAt(world, owner, pos);
+        }
+        if (actionS != null) {
+            actionS.doActionServerAt(world,owner, pos);
         }
     }
     public static void InitClientEvents() {
@@ -139,4 +187,73 @@ public class DPU {
             System.out.println(k.getValue());
         });
     }
+
+
+
+    public static void InvokeAllClientEventsFor(DPUEventType type) {
+        for (var ev_id : type.Events.keySet()) {
+            if (ev_id.toString().startsWith("cl_")) {
+                DPUEvent action = type.getSubEvent(ev_id);
+                if (action != null) {
+                    action.doActionClient();
+                }
+            }
+        }
+    }
+    public static void InvokeAllServerEventsFor(DPUEventType type, ServerWorld world, @NotNull PlayerEntity owner) {
+        for (var ev_id : type.Events.keySet()) {
+            if (ev_id.toString().startsWith("sv_")) {
+                DPUEvent action = type.getSubEvent(ev_id);
+                if (action != null) {
+                    action.doActionServer(world, owner);
+                }
+            }
+        }
+    }
+    public static Collection<DPUEvent> getAllClientEventsFor(DPUEventType type) {
+        ArrayList<DPUEvent> ev = new ArrayList<>();
+        for (var ev_id : type.Events.keySet()) {
+            if (ev_id.toString().startsWith("cl_")) {
+                DPUEvent action = type.getSubEvent(ev_id);
+                if (action != null) {
+                    ev.add(action);
+                }
+            }
+        }
+        return ev;
+    }
+    public static Collection<DPUEvent> getAllServerEventsFor(DPUEventType type) {
+        ArrayList<DPUEvent> ev = new ArrayList<>();
+        for (var ev_id : type.Events.keySet()) {
+            if (ev_id.toString().startsWith("sv_")) {
+                DPUEvent action = type.getSubEvent(ev_id);
+                if (action != null) {
+                    ev.add(action);
+                }
+            }
+        }
+        return ev;
+    }
+    public static void InvokeAllClientEventsForAt(DPUEventType type, Vec3d pos) {
+        for (var ev_id : type.Events.keySet()) {
+            if (ev_id.toString().startsWith("cl_")) {
+                DPUEvent action = type.getSubEvent(ev_id);
+                if (action != null) {
+                    action.doActionClientAt(pos);
+                }
+            }
+        }
+    }
+    public static void InvokeAllServerEventsForAt(DPUEventType type, ServerWorld world, @NotNull PlayerEntity owner, Vec3d pos) {
+        for (var ev_id : type.Events.keySet()) {
+            if (ev_id.toString().startsWith("sv_")) {
+                DPUEvent action = type.getSubEvent(ev_id);
+                if (action != null) {
+                    action.doActionServerAt(world, owner, pos);
+                }
+            }
+        }
+    }
+
+
 }

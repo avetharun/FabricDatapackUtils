@@ -10,6 +10,7 @@ public class DPUDataStorage {
     public static NbtCompound EventCompound = new NbtCompound();
     public static NbtCompound CommandReturnsCompound = new NbtCompound();
     public static NbtCompound CommandArgumentsCompound = new NbtCompound();
+    public static NbtCompound VariablesCompound = new NbtCompound();
     public static void InitServer(MinecraftServer s) {
         s.getDataCommandStorage().set(new Identifier("dpu", "events"), EventCompound);
     }
@@ -28,6 +29,17 @@ public class DPUDataStorage {
             CommandArgumentsCompound.remove(key);
         }
     }
+    public static void PopVars(MinecraftServer s){
+        for (var key : VariablesCompound.getKeys()) {
+            VariablesCompound.remove(key);
+        }
+    }
+    public static void PopEverything(MinecraftServer s) {
+        PopArgs(s);
+        PopEvent(s);
+        PopReturns(s);
+        PopVars(s);
+    }
     public static void PushEvent(MinecraftServer s, String id, NbtCompound compound) {
         PopEvent(s);
         EventCompound.put(id, compound);
@@ -37,6 +49,11 @@ public class DPUDataStorage {
         PopReturns(s);
         CommandReturnsCompound.put(id, compound);
         s.getDataCommandStorage().set(new Identifier("dpu", "returns"), CommandReturnsCompound);
+    }
+    public static void PushVariable(MinecraftServer s, String id, NbtCompound compound) {
+        PopEvent(s);
+        VariablesCompound.put(id, compound);
+        s.getDataCommandStorage().set(new Identifier("dpu", "variable"), VariablesCompound);
     }
     public static NbtCompound putValueF(NbtCompound compound, float value) {
         compound.putFloat("float", value);

@@ -11,13 +11,13 @@ Valid events as of version 1.0.2:
 
 - on_sneak
 
+- while_sneak
+
+-on_sneak_end
+
 - on_jump
 
-- on_eat_begin
-
-- on_eat_end
-
-- on_shield_block
+- on_eat
 
 
 * Note: some events may not be defined in your version. 

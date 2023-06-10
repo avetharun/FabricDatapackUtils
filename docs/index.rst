@@ -24,7 +24,7 @@ To get started with Fabric Datapack Utils, you'll need to have Fabric Loader and
 Usage and Examples
 =================
 
-For detailed information on how to use each feature of the Fabric Datapack Utils library, refer to the following sections:
+For detailed information on how to use each feature of the Fabric Datapack Utils library, refer to the  `API  </api>`_ page.
 
 - `Additional overrides for Resource Pack Item Models  <item_model_overrides>`_
 - `Event handling  <api/events>`_

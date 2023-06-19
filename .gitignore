@@ -121,3 +121,4 @@ run/
 # Local testing folders & things that are updated externally (ie docs)
 /docs/
 /src/main/resources/assets/minecraft/
+/src/main/resources/assets/minecraft/models/item

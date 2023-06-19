@@ -6,6 +6,8 @@ import com.feintha.dpu.DPUEventType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.listener.ClientPlayPacketListener;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
@@ -22,14 +24,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Entity.class)
 public class EntityMixin {
+    @Inject(method="createSpawnPacket", at=@At("HEAD"))
+    void onSpawn(CallbackInfoReturnable<Packet<ClientPlayPacketListener>> cir) {
+        Entity e = (Entity) (Object)this;
+    }
     @Inject(method="collidesWith", at=@At("RETURN"))
     void collidesWithInject(Entity other, CallbackInfoReturnable<Boolean> cir) {
         Entity e = (Entity) (Object)this;
         Identifier myid = Registries.ENTITY_TYPE.getId(e.getType());
         Identifier otherid = Registries.ENTITY_TYPE.getId(other.getType());
         Identifier id = new Identifier(myid.getNamespace(), myid.getPath() + "_" + otherid.getPath());
-        if (other.world.isClient){
-            DPU.InvokeClientEventForAt(DPUEventType.ON_ENTITY_COLLIDE_EVENT, id, e.getPos());
+        if (other.getWorld().isClient){
+            DPU.InvokeClientEventForAt(DPUEventType.ON_ENTITY_COLLIDE_EVENT, id, e.getPos(), e);
         } else {
             NbtCompound compound = new NbtCompound();
             compound.putString("source_type", myid.toString());
@@ -37,8 +43,8 @@ public class EntityMixin {
             compound.putString("target_type", otherid.toString());
             compound.putString("target_name", other.getName().getString());
             compound.putUuid("uuid", e.getUuid());
-            DPUDataStorage.PushEvent(other.world.getServer(), "entity_collide", compound);
-            DPU.InvokeServerEventForAt(DPUEventType.ON_ENTITY_COLLIDE_EVENT, id, e.getPos(), (ServerWorld) e.world, e);
+            DPUDataStorage.PushEvent(other.getWorld().getServer(), "entity_collide", compound);
+            DPU.InvokeServerEventForAt(DPUEventType.ON_ENTITY_COLLIDE_EVENT, id, e.getPos(), (ServerWorld) e.getWorld(), e, e);
         }
 
     }
@@ -47,16 +53,16 @@ public class EntityMixin {
         Entity e = (Entity) (Object)this;
         Identifier id = Registries.ENTITY_TYPE.getId(e.getType());
         System.out.println(id);
-        if (player.world.isClient){
-            DPU.InvokeClientEventForAt(DPUEventType.ON_INTERACT_ENTITY_EVENT, id, hitPos);
+        if (player.getWorld().isClient){
+            DPU.InvokeClientEventForAt(DPUEventType.ON_INTERACT_ENTITY_EVENT, id, hitPos, e);
         } else {
-            assert player.world.getServer() != null;
+            assert player.getWorld().getServer() != null;
             NbtCompound compound = new NbtCompound();
             compound.putString("type", id.toString());
             compound.putString("name", e.getName().getString());
             compound.putUuid("uuid", e.getUuid());
-            DPUDataStorage.PushEvent(player.world.getServer(), "entity_interact", compound);
-            DPU.InvokeServerEventForAt(DPUEventType.ON_INTERACT_ENTITY_EVENT, id, hitPos, (ServerWorld)player.world, player);
+            DPUDataStorage.PushEvent(player.getWorld().getServer(), "entity_interact", compound);
+            DPU.InvokeServerEventForAt(DPUEventType.ON_INTERACT_ENTITY_EVENT, id, hitPos, (ServerWorld)player.getWorld(), player, e);
         }
     }
     @Inject(method="handleAttack", at=@At("TAIL"))
@@ -65,17 +71,16 @@ public class EntityMixin {
         Entity e = (Entity) (Object)this;
         Identifier id = Registries.ENTITY_TYPE.getId(e.getType());
         System.out.println(id);
-        if (attacker.world.isClient){
-            DPU.InvokeClientEventFor(DPUEventType.ON_ATTACK_ENTITY_EVENT, id);
+        if (attacker.getWorld().isClient){
+            DPU.InvokeClientEventFor(DPUEventType.ON_ATTACK_ENTITY_EVENT, id, e);
         } else {
-            assert attacker.world.getServer() != null;
+            assert attacker.getWorld().getServer() != null;
             NbtCompound compound = new NbtCompound();
             compound.putString("type", id.toString());
             compound.putString("name", e.getName().getString());
             compound.putUuid("uuid", e.getUuid());
-            DPUDataStorage.PushEvent(attacker.world.getServer(), "entity_attack", compound);
-            DPU.InvokeServerEventForAt(DPUEventType.ON_ATTACK_ENTITY_EVENT, id, e.getEyePos(), (ServerWorld)attacker.world, null);
+            DPUDataStorage.PushEvent(attacker.getWorld().getServer(), "entity_attack", compound);
+            DPU.InvokeServerEventForAt(DPUEventType.ON_ATTACK_ENTITY_EVENT, id, e.getEyePos(), (ServerWorld)attacker.getWorld(), null, e);
         }
     }
-
 }

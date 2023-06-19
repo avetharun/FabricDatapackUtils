@@ -40,12 +40,12 @@ public class DPUDataStorage {
         PopReturns(s);
         PopVars(s);
     }
-    public static void PushEvent(MinecraftServer s, String id, NbtCompound compound) {
+    public static void PushEvent(MinecraftServer s, String id, NbtElement compound) {
         PopEvent(s);
         EventCompound.put(id, compound);
         s.getDataCommandStorage().set(new Identifier("dpu", "events"), EventCompound);
     }
-    public static void PushCommandReturnVals(MinecraftServer s, String id, NbtCompound compound) {
+    public static void PushCommandReturnVals(MinecraftServer s, String id, NbtElement compound) {
         PopReturns(s);
         CommandReturnsCompound.put(id, compound);
         s.getDataCommandStorage().set(new Identifier("dpu", "returns"), CommandReturnsCompound);

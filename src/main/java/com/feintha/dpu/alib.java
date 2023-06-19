@@ -1,11 +1,17 @@
 package com.feintha.dpu;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.TagKey;
@@ -24,6 +30,7 @@ import java.io.InputStream;
 import java.lang.reflect.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -33,7 +40,106 @@ import java.util.zip.CRC32;
 
 @SuppressWarnings("unused")
 public class alib {
+    public static NbtCompound packBlockStateIntoCompound(BlockState s, NbtCompound c) {
+        for (var prop : s.getProperties()) {
+            String n = prop.getName();
+            var value = prop.createValue(s);
+            Object vL = value.value();
+            if (vL instanceof Number num) {
+                if (num instanceof Float f) {
+                    c.putFloat(n, f);
+                } else if (num instanceof Double d) {
+                    c.putDouble(n,d);
+                } else if (num instanceof Long l) {
+                    c.putLong(n,l);
+                } else if (num instanceof Integer i) {
+                    c.putInt(n,i);
+                } else if (num instanceof Byte b) {
+                    c.putByte(n,b);
+                } else if (num instanceof Short sH) {
+                    c.putShort(n,sH);
+                }
+            } else if (vL instanceof Boolean bl) {
+                c.putBoolean(n, bl);
+            }
+        }
+        return c;
+    }
 
+    // Checks if left is present and values equal in right.
+    public static boolean checkNBTEquals(NbtCompound left, NbtCompound right) {
+        boolean bl = true;
+        for (String key : left.getKeys()) {
+            if (!bl || !right.contains(key)) {return false;}
+            NbtElement e_L = left.get(key);
+            NbtElement e_R = right.get(key);
+            int elem_t = left.getType(key);
+            if (right.getType(key) != elem_t) {
+                return false;
+            }
+            if (left.get(key) instanceof NbtList lL && right.get(key) instanceof NbtList rL) {
+                if (lL.size() != rL.size()) {return false;}
+                int i = 0;
+                for (NbtElement e : lL.subList(0, lL.size())) {
+                    if (!e.asString().contentEquals(rL.get(i).asString())){
+                        return false;
+                    }
+                    i++;
+                }
+            }
+
+            if (e_L instanceof AbstractNbtNumber numL && e_R instanceof AbstractNbtNumber numR) {
+                switch (elem_t) {
+                    case NbtType.INT -> bl = numL.intValue() == numR.intValue();
+                    case NbtType.SHORT -> bl = numL.shortValue() == numR.shortValue();
+                    case NbtType.BYTE -> bl = numL.byteValue() == numR.byteValue();
+                    case NbtType.FLOAT -> bl = numL.floatValue() == numR.floatValue();
+                    case NbtType.DOUBLE -> bl = numL.doubleValue() == numR.doubleValue();
+                    case NbtType.LONG -> bl = numL.longValue() == numR.longValue();
+                }
+            }
+            switch (elem_t) {
+                case NbtType.COMPOUND -> bl = checkNBTEquals(left.getCompound(key), right.getCompound(key));
+                case NbtType.STRING -> bl = e_L.asString().contentEquals(e_R.asString());
+            }
+        }
+        return bl;
+    }
+
+    public static NbtCompound json2NBT(JsonObject jsonObject) {
+        NbtCompound nbtCompound = new NbtCompound();
+
+        for (var entry : jsonObject.entrySet()) {
+            String key = entry.getKey();
+            JsonElement jsonElement = entry.getValue();
+
+            if (jsonElement.isJsonPrimitive()) {
+                JsonPrimitive primitive = jsonElement.getAsJsonPrimitive();
+                if (primitive.isNumber()) {
+                    if (primitive.getAsNumber() instanceof Integer i) {
+                        nbtCompound.putInt(key, i);
+                    } else if (primitive.getAsNumber() instanceof Float i) {
+                        nbtCompound.putFloat(key, i);
+                    } else if (primitive.getAsNumber() instanceof Double i) {
+                        nbtCompound.putDouble(key, i);
+                    } else if (primitive.getAsNumber() instanceof Short i) {
+                        nbtCompound.putShort(key, i);
+                    }
+                } else if (primitive.isBoolean()) {
+                    nbtCompound.putBoolean(key, primitive.getAsBoolean());
+                } else if (primitive.isString()) {
+                    nbtCompound.putString(key, primitive.getAsString());
+                }
+                // Add more conversions as needed for other primitive types
+            } else if (jsonElement.isJsonObject() || jsonElement.isJsonArray()) {
+                NbtCompound nestedCompound = json2NBT(jsonElement.getAsJsonObject());
+                nbtCompound.put(key, nestedCompound);
+            }
+            // Add more conversions as needed for other types like arrays or nested objects
+        }
+
+        return nbtCompound;
+    }
     public static <F,T> F getMixinField(T mixinType, String fieldName) {
         try {
             Field f = mixinType.getClass().getField(fieldName);
@@ -75,17 +181,36 @@ public class alib {
     }
     public static <T, R> R runMixinMethod(T mixinType, String methodName, Object ... args) {
         try {
-            Method f = mixinType.getClass().getMethod(methodName);
+            Class<?>[] argTypes = new Class<?>[args.length];
+            for (int i = 0; i < args.length; i++) {
+                argTypes[i] = args[i].getClass();
+            }
+            Method f;
+            if (args.length > 0) {
+                f = mixinType.getClass().getMethod(methodName, argTypes);
+            } else {
+                f = mixinType.getClass().getMethod(methodName);
+            }
             //noinspection unchecked
-            return (R) f.invoke(mixinType, args);
+            return (R)f.invoke(mixinType, args);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }
-    public static <T> void runPrivateMixinMethod(T mixinType, String methodName, Object args) {
+    public static <T, R> R runPrivateMixinMethod(T mixinType, String methodName, Object ... args) {
         try {
-            Method f = mixinType.getClass().getDeclaredMethod(methodName);
-            f.invoke(mixinType);
+            Class<?>[] argTypes = new Class<?>[args.length];
+            for (int i = 0; i < args.length; i++) {
+                argTypes[i] = args[i].getClass();
+            }
+            Method f;
+            if (args.length > 0) {
+                f = mixinType.getClass().getDeclaredMethod(methodName, argTypes);
+            } else {
+                f = mixinType.getClass().getDeclaredMethod(methodName);
+            }
+            //noinspection unchecked
+            return (R)f.invoke(mixinType, args);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -106,7 +231,7 @@ public class alib {
             for (int y = -radius; y <= radius; y++) {
                 for (int z = -radius; z <= radius; z++) {
                     BlockPos pos = entityPos.add(x, y, z);
-                    Block block = e.world.getBlockState(pos).getBlock();
+                    Block block = e.getWorld().getBlockState(pos).getBlock();
                     for (Block b : blocks) {
                         System.out.println("check");
                         if (block == b) {

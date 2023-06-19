@@ -17,6 +17,7 @@ public class DatapackUtils implements ModInitializer {
     /**
      * Runs the mod initializer.
      */
+    public static boolean hasHadEvent = false;
     public static int CURRENT_TICK = 0;
     public static List<Consumer<MinecraftServer>> ScheduledActions = new ArrayList<>();
     public static void ScheduleForNextTick(Consumer<MinecraftServer> action) {
@@ -31,11 +32,14 @@ public class DatapackUtils implements ModInitializer {
             StringCommand.register(dispatcher, registryAccess);
         });
         ServerTickEvents.START_SERVER_TICK.register(server -> {
-            DPUDataStorage.PopEverything(server);
+            if (hasHadEvent) {
+                DPUDataStorage.PopEverything(server);
+            }
             for (var action : ScheduledActions) {
                 action.accept(server);
             }
             ScheduledActions.clear();
+            hasHadEvent = false;
         });
         ServerTickEvents.END_SERVER_TICK.register(
                 server -> {CURRENT_TICK++;}

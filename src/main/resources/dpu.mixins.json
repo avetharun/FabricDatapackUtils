@@ -14,7 +14,9 @@
   "client": [
     "ItemRendererMixin",
     "ItemRendererMixin$InGameHudMixin",
-    "ModelLoaderDeserializerMixin",
+    "Client.ClientEntityMixin",
+    "Client.ModelOverrideDeserializerMixin",
+    "Client.ModelOverrideMixin",
     "Client.ModelPredicateProviderRegistryMixin"
   ],
   "injectors": {

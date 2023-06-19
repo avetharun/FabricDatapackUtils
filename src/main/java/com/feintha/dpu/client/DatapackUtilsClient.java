@@ -1,6 +1,7 @@
 package com.feintha.dpu.client;
 
 import com.feintha.dpu.DPU;
+import com.feintha.dpu.client.ModelOverrides.BooleanModelOverride;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
@@ -16,30 +17,17 @@ public class DatapackUtilsClient implements ClientModInitializer {
     public void onInitializeClient() {
         DPU.InitEverything();
 
-        ModelPredicateProviderRegistry.register(new Identifier("is_hand_first"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> {
-            return BooleanModelOverride.isRenderingInHandFirst(itemStack);
-        }));
-        ModelPredicateProviderRegistry.register(new Identifier("is_hand_third"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> {
-            return BooleanModelOverride.isRenderingInHandThird(itemStack);
-        }));
-        ModelPredicateProviderRegistry.register(new Identifier("is_hand_any"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> {
-            return BooleanModelOverride.isRenderingInHandAny(itemStack);
-        }));
-        ModelPredicateProviderRegistry.register(new Identifier("is_gui"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> {
-            return BooleanModelOverride.isRenderingInGUI(itemStack);
-        }));
-        ModelPredicateProviderRegistry.register(new Identifier("is_inventory"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> {
-            return BooleanModelOverride.isRenderingInGUI(itemStack);
-        }));
-        ModelPredicateProviderRegistry.register(new Identifier("is_fixed"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> {
-            return BooleanModelOverride.isRenderingInFixedPos(itemStack);
-        }));
-        ModelPredicateProviderRegistry.register(new Identifier("is_dropped"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> {
-            return BooleanModelOverride.isRenderingAsDropped(itemStack);
-        }));
-        ModelPredicateProviderRegistry.register(new Identifier("is_hotbar"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> {
-            return BooleanModelOverride.isRenderingInHotbar(itemStack);
-        }));
+        ModelPredicateProviderRegistry.register(new Identifier("is_hand_first"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> BooleanModelOverride.isRenderingInHandFirst(itemStack)));
+        ModelPredicateProviderRegistry.register(new Identifier("is_hand_third"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> BooleanModelOverride.isRenderingInHandThird(itemStack)));
+        ModelPredicateProviderRegistry.register(new Identifier("is_hand_any"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> BooleanModelOverride.isRenderingInHandAny(itemStack)));
+        ModelPredicateProviderRegistry.register(new Identifier("is_gui"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> BooleanModelOverride.isRenderingInGUI(itemStack)));
+        ModelPredicateProviderRegistry.register(new Identifier("is_inventory"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> BooleanModelOverride.isRenderingInGUI(itemStack)));
+        ModelPredicateProviderRegistry.register(new Identifier("is_fixed"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> BooleanModelOverride.isRenderingInFixedPos(itemStack)));
+        ModelPredicateProviderRegistry.register(new Identifier("is_dropped"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> BooleanModelOverride.isRenderingAsDropped(itemStack)));
+        ModelPredicateProviderRegistry.register(new Identifier("is_hotbar"), new BooleanModelOverride((itemStack, clientWorld, livingEntity, integer) -> BooleanModelOverride.isRenderingInHotbar(itemStack)));
+
+
+
         ModelPredicateProviderRegistry.register(new Identifier("use_time"), (stack, world, entity, seed) -> {
             if (entity == null) {
                 return 0.0F;

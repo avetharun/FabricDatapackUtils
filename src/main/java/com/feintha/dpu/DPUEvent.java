@@ -7,9 +7,13 @@ import com.google.gson.JsonParser;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleType;
 import net.minecraft.registry.Registries;
+import net.minecraft.scoreboard.ScoreboardPlayerScore;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -17,11 +21,16 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class DPUEvent {
+    public boolean cancelEvent = false;
     public Identifier function = null;
     public boolean serverOnly = false;
     public int actionLastTick = 0;
@@ -48,7 +57,7 @@ public class DPUEvent {
     public DPUEvent(String input){
         this(new JsonParser().parse(input).getAsJsonObject());
     }
-
+    public void putEventData(@Nullable Entity owner, World world, MinecraftServer server, Identifier id) {}
 
     protected final void handleParticles(){
         assert MinecraftClient.getInstance().world != null;
@@ -85,11 +94,7 @@ public class DPUEvent {
         if (function != null) {
             var func = world.getServer().getCommandFunctionManager().getFunction(function);
             if (func.isPresent()) {
-                if (owner == null || !owner.isPlayer()) {
-                    world.getServer().getCommandFunctionManager().execute(func.get(), world.getServer().getCommandSource());
-                } else {
-                    world.getServer().getCommandFunctionManager().execute(func.get(), owner.getCommandSource());
-                }
+                world.getServer().getCommandFunctionManager().execute(func.get(), world.getServer().getCommandSource().withEntity(owner));
             } else {
                 System.out.println("Unable to execute function " + function + " when using event.");
             }
@@ -99,11 +104,7 @@ public class DPUEvent {
         if (function != null) {
             var func = world.getServer().getCommandFunctionManager().getFunction(function);
             if (func.isPresent()) {
-                if (owner == null || !owner.isPlayer()) {
-                    world.getServer().getCommandFunctionManager().execute(func.get(), world.getServer().getCommandSource().withPosition(pos));
-                } else {
-                    world.getServer().getCommandFunctionManager().execute(func.get(), owner.getCommandSource().withPosition(pos));
-                }
+                world.getServer().getCommandFunctionManager().execute(func.get(), world.getServer().getCommandSource().withPosition(pos).withEntity(owner));
             } else {
                 System.out.println("Unable to execute function " + function + " when using event.");
             }
@@ -129,46 +130,147 @@ public class DPUEvent {
             w.playSound(null, pos.x, pos.y - 0.25f, pos.z, sound, SoundCategory.MASTER, SoundVolume, SoundPitch);
         }
     }
-    public void doActionClient(){
+    public boolean doActionClient(){
         handleSound();
         handleParticles();
+        return cancelEvent;
     }
-    public void doActionClientAt(Vec3d pos){
+    public boolean doActionClientAt(Vec3d pos){
         handleSound();
         handleParticles();
+        return cancelEvent;
     }
-    public void doActionServer(ServerWorld world) {
+    public <T>boolean doActionClient(T data){
+        if (!this.preProcessEvent(data)) {return false;}
+        handleSound();
+        handleParticles();
+        return cancelEvent;
+    }
+    public <T>boolean doActionClientAt(Vec3d pos, T data){
+        if (!this.preProcessEvent(data)) {return false;}
+        handleSound();
+        handleParticles();
+        return cancelEvent;
+    }
+    public <T> boolean doActionServer(ServerWorld world, T data) {
+        if (!this.preProcessEvent(data)) {return false;}
+        DatapackUtils.hasHadEvent = true;
         DatapackUtils.ScheduleForNextTick((s) -> {
             handleFunction(world, null);
             handleServerSound(world, null);
             handleServerParticles(world, null);
         });
+        return cancelEvent;
     }
-    public void doActionServerAt(ServerWorld world, Vec3d pos) {
+    public boolean doActionServer(ServerWorld world) {
+        DatapackUtils.hasHadEvent = true;
         DatapackUtils.ScheduleForNextTick((s) -> {
-            handleFunctionAt(world, null, pos);
-            handleServerSoundAt(world, null, pos);
-            handleServerParticlesAt(world, null, pos);
+            handleFunction(world, null);
+            handleServerSound(world, null);
+            handleServerParticles(world, null);
         });
+        return cancelEvent;
+    }
+    public <T>boolean doActionServerAt(ServerWorld world, Vec3d pos, boolean immediate, T data) {
+        if (!this.preProcessEvent(data)) {return false;}
+        DatapackUtils.hasHadEvent = true;
+        if (!immediate) {
+            DatapackUtils.ScheduleForNextTick((s) -> {
+                handleFunctionAt(world, null, pos);
+                handleServerSoundAt(world, null, pos);
+                handleServerParticlesAt(world, null, pos);
+            });
+            return cancelEvent;
+        }
+        handleFunctionAt(world, null, pos);
+        handleServerSoundAt(world, null, pos);
+        handleServerParticlesAt(world, null, pos);
+        return cancelEvent;
 
     }
-    public void doActionServer(ServerWorld world, Entity owner) {
-        DatapackUtils.ScheduleForNextTick((s) -> {
-            handleFunction(world, owner);
-            handleServerSound(world, owner);
-            handleServerParticles(world, owner);
-        });
+    public boolean doActionServerAt(ServerWorld world, Vec3d pos, boolean immediate) {
+        DatapackUtils.hasHadEvent = true;
+        if (!immediate) {
+            DatapackUtils.ScheduleForNextTick((s) -> {
+                handleFunctionAt(world, null, pos);
+                handleServerSoundAt(world, null, pos);
+                handleServerParticlesAt(world, null, pos);
+            });
+            return cancelEvent;
+        }
+        handleFunctionAt(world, null, pos);
+        handleServerSoundAt(world, null, pos);
+        handleServerParticlesAt(world, null, pos);
+        return cancelEvent;
+
     }
-    public void doActionServerAt(ServerWorld world, Entity owner, Vec3d pos) {
+    public <T> boolean doActionServer(ServerWorld world, Entity owner, boolean immediate, T data) {
+        if (!this.preProcessEvent(data)) {return false;}
+        DatapackUtils.hasHadEvent = true;
+        if (!immediate) {
+            DatapackUtils.ScheduleForNextTick((s) -> {
+                handleFunction(world, owner);
+                handleServerSound(world, owner);
+                handleServerParticles(world, owner);
+            });
+            return cancelEvent;
+        }
+        handleFunction(world, owner);
+        handleServerSound(world, owner);
+        handleServerParticles(world, owner);
+        return cancelEvent;
+
+    }
+    public boolean doActionServer(ServerWorld world, Entity owner, boolean immediate) {
+        DatapackUtils.hasHadEvent = true;
+        if (!immediate) {
+            DatapackUtils.ScheduleForNextTick((s) -> {
+                handleFunction(world, owner);
+                handleServerSound(world, owner);
+                handleServerParticles(world, owner);
+            });
+            return cancelEvent;
+        }
+        handleFunction(world, owner);
+        handleServerSound(world, owner);
+        handleServerParticles(world, owner);
+        return cancelEvent;
+    }
+    public <T> boolean doActionServerAt(ServerWorld world, Entity owner, Vec3d pos, T data) {
+        if (!this.preProcessEvent(data)) {return false;}
+        DatapackUtils.hasHadEvent = true;
         DatapackUtils.ScheduleForNextTick((s) -> {
             handleFunctionAt(world, owner, pos);
             handleServerSoundAt(world, owner, pos);
             handleServerParticlesAt(world, owner, pos);
         });
-
+        return cancelEvent;
+    }
+    public boolean doActionServerAt(ServerWorld world, Entity owner, Vec3d pos) {
+        DatapackUtils.hasHadEvent = true;
+        DatapackUtils.ScheduleForNextTick((s) -> {
+            handleFunctionAt(world, owner, pos);
+            handleServerSoundAt(world, owner, pos);
+            handleServerParticlesAt(world, owner, pos);
+        });
+        return cancelEvent;
+    }
+    public NbtCompound requiredNbt;
+    public <T> boolean preProcessEvent(T data) {
+        return true;
     }
     @SuppressWarnings("UnusedReturnValue")
     public DPUEvent Deserialize(JsonObject object){
+        if (object.has("predicate")) {
+            JsonObject p_O = object.getAsJsonObject("predicate");
+            if (p_O.has("nbt")) {
+                JsonObject p_N = p_O.getAsJsonObject("nbt");
+                requiredNbt = alib.json2NBT(p_N);
+            }
+        }
+        if (object.has("cancels")) {
+            this.cancelEvent = object.get("cancels").getAsBoolean();
+        }
         if (object.has("function")) {
             this.function = new Identifier(object.get("function").getAsString());
         }

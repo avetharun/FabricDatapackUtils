@@ -1,36 +1,43 @@
 package com.feintha.dpu;
 
+import com.feintha.dpu.Events.DPUPlayerEvent;
 import com.google.gson.JsonParser;
-import com.mojang.datafixers.util.Function3;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.entity.PlayerEntityRenderer;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
-import net.minecraft.server.command.DataCommand;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Arm;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 
 public class DPU {
+
+    public static final int VERSION_MAJOR = 1;
+    public static final int VERSION_PROP = 0;
+    public static final int VERSION_MINOR = 2;
+    public static final int VERSION_ID = (100*VERSION_MAJOR) + (10*VERSION_PROP) + (VERSION_MINOR);
     public static class DPUWorkerThread_T extends Thread{
         public DPUWorkerThread_T(int id) {
             super("DPUWorkerThread" + id);
@@ -59,54 +66,133 @@ public class DPU {
         }
         DPUWorkerThreads = (ThreadPoolExecutor) Executors.newFixedThreadPool(8);
     }
-    public static void InvokeClientEventFor(DPUEventType type, Identifier idToRun) {
+    public static boolean InvokeClientEventFor(DPUEventType type, Identifier idToRun) {
         Identifier id = new Identifier("cl_"+idToRun.getNamespace(), idToRun.getPath());
         Identifier idStar = new Identifier("cl_"+idToRun.getNamespace(), "--");
         DPUEvent action = type.getSubEvent(id);
         DPUEvent actionS = type.getSubEvent(idStar);
+        boolean cancel = false;
         if (action != null) {
-            action.doActionClient();
+            cancel = action.doActionClient();
         }
         if (actionS != null) {
-            actionS.doActionClient();
+            cancel |= actionS.doActionClient();
         }
+        return cancel;
     }
-    public static void InvokeServerEventFor(DPUEventType type, Identifier idToRun, ServerWorld world, @NotNull Entity owner) {
-        Identifier id = new Identifier("sv_"+idToRun.getNamespace(), idToRun.getPath());
-        Identifier idStar = new Identifier("sv_"+idToRun.getNamespace(), "--");
-        DPUEvent action = type.getSubEvent(id);
-        DPUEvent actionS = type.getSubEvent(idStar);
-        if (action != null) {
-            action.doActionServer(world, owner);
-        }
-        if (actionS != null) {
-            actionS.doActionServer(world,owner);
-        }
-    }
-    public static void InvokeClientEventForAt(DPUEventType type, Identifier idToRun, Vec3d pos) {
+    public static <T> boolean InvokeClientEventFor(DPUEventType type, Identifier idToRun, T data) {
         Identifier id = new Identifier("cl_"+idToRun.getNamespace(), idToRun.getPath());
         Identifier idStar = new Identifier("cl_"+idToRun.getNamespace(), "--");
         DPUEvent action = type.getSubEvent(id);
         DPUEvent actionS = type.getSubEvent(idStar);
+        boolean cancel = false;
         if (action != null) {
-            action.doActionClientAt(pos);
+            cancel = action.doActionClient(data);
         }
         if (actionS != null) {
-            actionS.doActionClientAt(pos);
+            cancel |= actionS.doActionClient(data);
         }
+        return cancel;
     }
-    public static void InvokeServerEventForAt(DPUEventType type, Identifier idToRun, Vec3d pos, ServerWorld world, Entity owner) {
+    public static boolean InvokeServerEventFor(DPUEventType type, Identifier idToRun, ServerWorld world, @NotNull Entity owner, boolean immediate) {
         Identifier id = new Identifier("sv_"+idToRun.getNamespace(), idToRun.getPath());
         Identifier idStar = new Identifier("sv_"+idToRun.getNamespace(), "--");
         DPUEvent action = type.getSubEvent(id);
         DPUEvent actionS = type.getSubEvent(idStar);
+        boolean cancel = false;
         if (action != null) {
-            action.doActionServerAt(world, owner, pos);
+            action.putEventData(owner,world,world.getServer(), id);
+            cancel = action.doActionServer(world, owner, immediate);
         }
         if (actionS != null) {
-            actionS.doActionServerAt(world,owner, pos);
+            actionS.putEventData(owner,world,world.getServer(), id);
+            cancel |= actionS.doActionServer(world,owner, immediate);
         }
+        return cancel;
     }
+    public static boolean InvokeClientEventForAt(DPUEventType type, Identifier idToRun, Vec3d pos) {
+        Identifier id = new Identifier("cl_"+idToRun.getNamespace(), idToRun.getPath());
+        Identifier idStar = new Identifier("cl_"+idToRun.getNamespace(), "--");
+        DPUEvent action = type.getSubEvent(id);
+        DPUEvent actionS = type.getSubEvent(idStar);
+        boolean cancel = false;
+        if (action != null) {
+            cancel = action.doActionClientAt(pos);
+        }
+        if (actionS != null) {
+            cancel |= actionS.doActionClientAt(pos);
+        }
+        return cancel;
+    }
+    public static boolean InvokeServerEventForAt(DPUEventType type, Identifier idToRun, Vec3d pos, ServerWorld world, Entity owner) {
+        Identifier id = new Identifier("sv_"+idToRun.getNamespace(), idToRun.getPath());
+        Identifier idStar = new Identifier("sv_"+idToRun.getNamespace(), "--");
+        DPUEvent action = type.getSubEvent(id);
+        DPUEvent actionS = type.getSubEvent(idStar);
+        boolean cancel = false;
+        if (action != null) {
+            action.putEventData(owner,world,world.getServer(), id);
+            cancel = action.doActionServerAt(world, owner, pos);
+        }
+        if (actionS != null) {
+            actionS.putEventData(owner,world,world.getServer(), id);
+            cancel |= actionS.doActionServerAt(world,owner, pos);
+        }
+        return cancel;
+    }
+
+
+
+    public static <T>boolean InvokeServerEventFor(DPUEventType type, Identifier idToRun, ServerWorld world, @NotNull Entity owner, boolean immediate, T data) {
+        Identifier id = new Identifier("sv_"+idToRun.getNamespace(), idToRun.getPath());
+        Identifier idStar = new Identifier("sv_"+idToRun.getNamespace(), "--");
+        DPUEvent action = type.getSubEvent(id);
+        DPUEvent actionS = type.getSubEvent(idStar);
+        boolean cancel = false;
+        if (action != null) {
+            action.putEventData(owner,world,world.getServer(), id);
+            cancel = action.doActionServer(world, owner, immediate, data);
+        }
+        if (actionS != null) {
+            actionS.putEventData(owner,world,world.getServer(), id);
+            cancel |= actionS.doActionServer(world,owner, immediate, data);
+        }
+        return cancel;
+    }
+    public static <T>boolean InvokeClientEventForAt(DPUEventType type, Identifier idToRun, Vec3d pos, T data) {
+        Identifier id = new Identifier("cl_"+idToRun.getNamespace(), idToRun.getPath());
+        Identifier idStar = new Identifier("cl_"+idToRun.getNamespace(), "--");
+        DPUEvent action = type.getSubEvent(id);
+        DPUEvent actionS = type.getSubEvent(idStar);
+        boolean cancel = false;
+        if (action != null) {
+            cancel = action.doActionClientAt(pos, data);
+        }
+        if (actionS != null) {
+            cancel |= actionS.doActionClientAt(pos, data);
+        }
+        return cancel;
+    }
+    public static <T>boolean InvokeServerEventForAt(DPUEventType type, Identifier idToRun, Vec3d pos, ServerWorld world, Entity owner, T data) {
+        Identifier id = new Identifier("sv_"+idToRun.getNamespace(), idToRun.getPath());
+        Identifier idStar = new Identifier("sv_"+idToRun.getNamespace(), "--");
+        DPUEvent action = type.getSubEvent(id);
+        DPUEvent actionS = type.getSubEvent(idStar);
+        boolean cancel = false;
+        if (action != null) {
+            action.putEventData(owner,world,world.getServer(), id);
+            cancel = action.doActionServerAt(world, owner, pos, data);
+        }
+        if (actionS != null) {
+            actionS.putEventData(owner,world,world.getServer(), id);
+            cancel |= actionS.doActionServerAt(world,owner, pos, data);
+        }
+        return cancel;
+    }
+
+
+
+
     public static void InitClientEvents() {
         ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
@@ -200,12 +286,12 @@ public class DPU {
             }
         }
     }
-    public static void InvokeAllServerEventsFor(DPUEventType type, ServerWorld world, @NotNull PlayerEntity owner) {
+    public static void InvokeAllServerEventsFor(DPUEventType type, ServerWorld world, @NotNull PlayerEntity owner, boolean immediate) {
         for (var ev_id : type.Events.keySet()) {
             if (ev_id.toString().startsWith("sv_")) {
                 DPUEvent action = type.getSubEvent(ev_id);
                 if (action != null) {
-                    action.doActionServer(world, owner);
+                    action.doActionServer(world, owner, immediate);
                 }
             }
         }

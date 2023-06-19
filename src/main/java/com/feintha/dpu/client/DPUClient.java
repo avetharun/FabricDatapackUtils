@@ -1,6 +1,6 @@
 package com.feintha.dpu.client;
 
-import com.feintha.dpu.DPUEventType;
+import com.feintha.dpu.client.ModelOverrides.BooleanModelOverride;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;

@@ -1,4 +1,4 @@
-package com.feintha.dpu.client;
+package com.feintha.dpu.client.ModelOverrides;
 
 import com.feintha.dpu.alib;
 import com.mojang.datafixers.util.Function4;

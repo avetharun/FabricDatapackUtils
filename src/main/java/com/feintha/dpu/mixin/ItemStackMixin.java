@@ -32,18 +32,24 @@ public class ItemStackMixin {
     private void onInit(CallbackInfo info) {
         transformationMode = ModelTransformationMode.NONE;
     }
-    @Inject(method="use", at=@At("TAIL"))
+    @Inject(method="use", at=@At("TAIL"), cancellable = true)
     private void onUseFunction(World world, PlayerEntity user, Hand hand, CallbackInfoReturnable<TypedActionResult<ItemStack>> cir) {
-        Item _this = ((ItemStack)(Object)this).getItem();
+        ItemStack self_S = ((ItemStack)(Object)this);
+        Item _this = self_S.getItem();
         Identifier id = Registries.ITEM.getId(_this);
+        boolean cancel = false;
         if (world.isClient) {
-            DPU.InvokeClientEventFor(DPUEventType.ON_USE_EVENT, id);
+            cancel = DPU.InvokeClientEventFor(DPUEventType.ON_USE_EVENT, id, self_S);
         } else {
             NbtCompound compound = new NbtCompound();
             compound.putString("item", id.toString());
             assert world.getServer() != null;
             DPUDataStorage.PushEvent(world.getServer(), "item_use", compound);
-            DPU.InvokeServerEventFor(DPUEventType.ON_USE_EVENT, id, (ServerWorld) world, (PlayerEntity)user);
+            cancel = DPU.InvokeServerEventFor(DPUEventType.ON_USE_EVENT, id, (ServerWorld) world, user, true, self_S);
+        }
+        if (cancel) {
+            cir.setReturnValue(TypedActionResult.consume(self_S));
+            cir.cancel();
         }
     }
     @Mixin(Item.class)

@@ -48,6 +48,7 @@ If your event includes the function part, you can use the @s selector to do some
 Event predicates
 -------
 Event predicates will force the event to only apply if a given NBT object is present AND equal. (For example, item contains tag "coin")
+
 Note: the NBT starts at the object's ROOT, so if this event is for an item, it will supply the Item ID and count. BlockStates should also work, though untested at the moment.
 ::
   

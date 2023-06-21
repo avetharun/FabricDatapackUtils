@@ -256,6 +256,9 @@ public class DPUEvent {
         return cancelEvent;
     }
     public NbtCompound requiredNbt;
+    public enum DPUDayType{
+        MIDNIGHT, DAY, NIGHT
+    }
     public <T> boolean preProcessEvent(T data) {
         return true;
     }

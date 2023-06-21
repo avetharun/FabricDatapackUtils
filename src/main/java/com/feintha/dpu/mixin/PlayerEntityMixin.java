@@ -34,7 +34,6 @@ public class PlayerEntityMixin {
             lastJumpTick = DatapackUtilsClient.worldTick;
         } else {
             var evs = DPU.getAllServerEventsFor(DPUEventType.ON_JUMP);
-            System.out.println(evs.size());
             for (DPUEvent ev : evs) {
                 if (ev instanceof DPUPlayerEvent playerEvent) {
                     playerEvent.PutEntityData(_this);

@@ -5,15 +5,18 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "AbstractBlockMixin",
+    "EntityDataObjectMixin",
     "EntityMixin",
     "ItemStackMixin",
     "ItemStackMixin$ItemMixin",
     "PlayerEntityMixin",
-    "WorldMixin"
+    "WorldMixin",
+    "WorldMixin$ServerWorldMixin"
   ],
   "client": [
     "ItemRendererMixin",
     "ItemRendererMixin$InGameHudMixin",
+    "WorldMixin$ClientWorldMixin",
     "Client.ClientEntityMixin",
     "Client.ModelOverrideDeserializerMixin",
     "Client.ModelOverrideMixin",

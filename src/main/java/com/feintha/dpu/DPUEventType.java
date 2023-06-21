@@ -1,9 +1,6 @@
 package com.feintha.dpu;
 
-import com.feintha.dpu.Events.DPUBlockEvent;
-import com.feintha.dpu.Events.DPUEntityEvent;
-import com.feintha.dpu.Events.DPUItemEvent;
-import com.feintha.dpu.Events.DPUPlayerEvent;
+import com.feintha.dpu.Events.*;
 import com.google.gson.JsonObject;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
@@ -13,6 +10,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 
 public class DPUEventType {
+    public static final DPUEventType ON_WORLD_BEGIN_RAINING = Registry.register(DPU.EVENT_TYPE, new Identifier("on_rain_begin"), new DPUEventType(DPUWorldEvent.class));
+    public static final DPUEventType ON_WORLD_END_RAINING = Registry.register(DPU.EVENT_TYPE, new Identifier("on_rain_end"), new DPUEventType(DPUWorldEvent.class));
+    public static final DPUEventType ON_WORLD_BEGIN_THUNDER = Registry.register(DPU.EVENT_TYPE, new Identifier("on_thunder_begin"), new DPUEventType(DPUWorldEvent.class));
+    public static final DPUEventType ON_WORLD_END_THUNDER = Registry.register(DPU.EVENT_TYPE, new Identifier("on_thunder_end"), new DPUEventType(DPUWorldEvent.class));
+
+
+
     public static final DPUEventType ON_USE_EVENT = Registry.register(DPU.EVENT_TYPE, new Identifier("on_use"), new DPUEventType(DPUItemEvent.class));
     public static final DPUEventType ON_INTERACT_BLOCK_EVENT = Registry.register(DPU.EVENT_TYPE, new Identifier("on_interact_block"), new DPUEventType(DPUBlockEvent.class));
     public static final DPUEventType ON_SWING_EVENT = Registry.register(DPU.EVENT_TYPE, new Identifier("on_swing"), new DPUEventType(DPUItemEvent.class));
@@ -59,7 +63,6 @@ public class DPUEventType {
             }
             //noinspection unchecked
             Constructor<T> constructor = (Constructor<T>) eventClass.getConstructor(argTypes);
-            System.out.println("Constructed");
             return constructor.newInstance(args);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new RuntimeException(e);
@@ -67,6 +70,5 @@ public class DPUEventType {
     }
     public void addSubEvent (Identifier eventName, DPUEvent event){
         Events.put(eventName, event);
-        System.out.println("addedSubEvent");
     }
 }

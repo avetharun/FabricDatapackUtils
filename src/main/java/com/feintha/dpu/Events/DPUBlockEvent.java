@@ -2,6 +2,7 @@ package com.feintha.dpu.Events;
 
 import com.feintha.dpu.DPUEvent;
 import com.feintha.dpu.alib;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
@@ -11,8 +12,8 @@ import net.minecraft.util.Identifier;
 public class DPUBlockEvent extends DPUEvent {
     Identifier requiredItemID = new Identifier("minecraft", "air");
 
-    public DPUBlockEvent(JsonObject o) {
-        super(o);
+    public DPUBlockEvent(JsonElement o) {
+        super(o, DPUBlockEvent::new);
     }
 
     @Override
@@ -26,7 +27,6 @@ public class DPUBlockEvent extends DPUEvent {
         }
         return super.preProcessEvent(data);
     }
-
     @Override
     public DPUEvent Deserialize(JsonObject object) {
         if (object.has("requiredItem")) {

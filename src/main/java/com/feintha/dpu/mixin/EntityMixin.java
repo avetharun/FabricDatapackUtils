@@ -24,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Entity.class)
 public class EntityMixin {
+    public boolean hasOverride = false;
     @Inject(method="createSpawnPacket", at=@At("HEAD"))
     void onSpawn(CallbackInfoReturnable<Packet<ClientPlayPacketListener>> cir) {
         Entity e = (Entity) (Object)this;
@@ -81,6 +82,15 @@ public class EntityMixin {
             compound.putUuid("uuid", e.getUuid());
             DPUDataStorage.PushEvent(attacker.getWorld().getServer(), "entity_attack", compound);
             DPU.InvokeServerEventForAt(DPUEventType.ON_ATTACK_ENTITY_EVENT, id, e.getEyePos(), (ServerWorld)attacker.getWorld(), null, e);
+        }
+    }
+    @Inject(method="tick", at=@At("TAIL"))
+    void onTick(CallbackInfo ci){
+        Entity e = (Entity) (Object)this;
+        if (e.getWorld().isClient) {
+            DPU.InvokeClientEventFor(DPUEventType.RANDOM_ENTITY_TICK, Registries.ENTITY_TYPE.getId(e.getType()), e);
+        } else {
+            DPU.InvokeServerEventFor(DPUEventType.RANDOM_ENTITY_TICK, Registries.ENTITY_TYPE.getId(e.getType()), (ServerWorld) e.getWorld(), e, true);
         }
     }
 }

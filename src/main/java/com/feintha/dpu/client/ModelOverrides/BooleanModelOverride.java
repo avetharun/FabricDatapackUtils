@@ -5,6 +5,7 @@ import com.mojang.datafixers.util.Function4;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.item.ClampedModelPredicateProvider;
+import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.LivingEntity;
@@ -26,7 +27,7 @@ public class BooleanModelOverride implements ClampedModelPredicateProvider {
     public static boolean isRenderingInGUI(ItemStack stack) {
         ModelTransformationMode m = alib.getMixinField(stack, "transformationMode");
         if (m == null) {return false;}
-        boolean bl1 = alib.getMixinField(stack, "isBeingRenderedInHotbar");
+        boolean bl1 = (boolean)alib.getMixinField(stack, "isBeingRenderedInHotbar") || (boolean)alib.getMixinField(stack, "isBeingRenderedInGUICompat");
         return bl1 || m == ModelTransformationMode.GUI;
     }
     public static boolean isRenderingInHotbar(ItemStack stack) {

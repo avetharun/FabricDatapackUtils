@@ -3,20 +3,29 @@ package com.feintha.dpu;
 import com.feintha.dpu.Events.DPUPlayerEvent;
 import com.google.gson.JsonParser;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.fabric.impl.client.rendering.EntityRendererRegistryImpl;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.client.render.entity.EntityRenderers;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.screen.PlayerScreenHandler;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Arm;
 import net.minecraft.util.Identifier;
@@ -28,6 +37,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
@@ -73,10 +83,10 @@ public class DPU {
         DPUEvent actionS = type.getSubEvent(idStar);
         boolean cancel = false;
         if (action != null) {
-            cancel = action.doActionClient();
+            cancel = action.doActionClient(false);
         }
         if (actionS != null) {
-            cancel |= actionS.doActionClient();
+            cancel |= actionS.doActionClient(false);
         }
         return cancel;
     }
@@ -87,10 +97,10 @@ public class DPU {
         DPUEvent actionS = type.getSubEvent(idStar);
         boolean cancel = false;
         if (action != null) {
-            cancel = action.doActionClient(data);
+            cancel = action.doActionClient(false, data);
         }
         if (actionS != null) {
-            cancel |= actionS.doActionClient(data);
+            cancel |= actionS.doActionClient(false, data);
         }
         return cancel;
     }
@@ -117,10 +127,10 @@ public class DPU {
         DPUEvent actionS = type.getSubEvent(idStar);
         boolean cancel = false;
         if (action != null) {
-            cancel = action.doActionClientAt(pos);
+            cancel = action.doActionClientAt(pos, false);
         }
         if (actionS != null) {
-            cancel |= actionS.doActionClientAt(pos);
+            cancel |= actionS.doActionClientAt(pos, false);
         }
         return cancel;
     }
@@ -132,11 +142,11 @@ public class DPU {
         boolean cancel = false;
         if (action != null) {
             action.putEventData(owner,world,world.getServer(), id);
-            cancel = action.doActionServerAt(world, owner, pos);
+            cancel = action.doActionServerAt(world, owner, pos, false);
         }
         if (actionS != null) {
             actionS.putEventData(owner,world,world.getServer(), id);
-            cancel |= actionS.doActionServerAt(world,owner, pos);
+            cancel |= actionS.doActionServerAt(world,owner, pos, false);
         }
         return cancel;
     }
@@ -166,10 +176,10 @@ public class DPU {
         DPUEvent actionS = type.getSubEvent(idStar);
         boolean cancel = false;
         if (action != null) {
-            cancel = action.doActionClientAt(pos, data);
+            cancel = action.doActionClientAt(pos, true, data);
         }
         if (actionS != null) {
-            cancel |= actionS.doActionClientAt(pos, data);
+            cancel |= actionS.doActionClientAt(pos, true, data);
         }
         return cancel;
     }
@@ -181,11 +191,11 @@ public class DPU {
         boolean cancel = false;
         if (action != null) {
             action.putEventData(owner,world,world.getServer(), id);
-            cancel = action.doActionServerAt(world, owner, pos, data);
+            cancel = action.doActionServerAt(world, owner, pos, false, data);
         }
         if (actionS != null) {
             actionS.putEventData(owner,world,world.getServer(), id);
-            cancel |= actionS.doActionServerAt(world,owner, pos, data);
+            cancel |= actionS.doActionServerAt(world,owner, pos, false, data);
         }
         return cancel;
     }
@@ -203,6 +213,11 @@ public class DPU {
             final String r_M = "\\/([A-Za-z0-9_.-]+)\\.json";
             @Override
             public void reload(ResourceManager manager) {
+//                var entityRendererFactories = alib.<Map<EntityType<?>, EntityRendererFactory<?>>,EntityRenderers>getPrivateMixinField(null, "RENDERER_FACTORIES");
+//                entityRendererFactories.forEach((entityType, entityRendererFactory) -> {
+////                    entityRendererFactory.create()
+//                });
+
                 int l = 0;
                 for (var entry : EVENT_TYPE.getEntrySet()) {
                     Identifier __id = entry.getKey().getValue();
@@ -215,7 +230,8 @@ public class DPU {
                         Identifier registryID = new Identifier(SIDE+itemID.getNamespace(), itemID.getPath());
                         try {
                             String input = new String(file.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                            entry.getValue().addSubEvent(registryID, entry.getValue().createEventType(new JsonParser().parse(input).getAsJsonObject()));
+                            var j = new JsonParser().parse(input);
+                            entry.getValue().addSubEvent(registryID, entry.getValue().createEventType(new JsonParser().parse(input)));
                             l++;
                         } catch (IOException e) {
                             throw new RuntimeException(e);
@@ -225,8 +241,22 @@ public class DPU {
                 System.out.println("Loaded " + l + " server-side events.");
             }
         });
-        EVENT_TYPE.getKeys().forEach(k -> {
-            System.out.println(k.getValue());
+    }
+    public static void InitCustomBlocks() {
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+            @Override
+            public void reload(ResourceManager manager) {
+                String _path = "custom/blocks/";
+                var custom_block_files = manager.findResources(_path, path -> path.getPath().endsWith(".json"));
+                custom_block_files.forEach((identifier, resource) -> {
+
+                });
+            }
+
+            @Override
+            public Identifier getFabricId() {
+                return new Identifier("dpu", "blocks");
+            }
         });
 
     }
@@ -256,10 +286,9 @@ public class DPU {
                         String itemName = id.getPath().replaceAll(".*/(.*?)\\.json", "$1");
                         Identifier itemID = new Identifier(id.getNamespace(), itemName);
                         Identifier registryID = new Identifier(SIDE+itemID.getNamespace(), itemID.getPath());
-
                         try {
                             String input = new String(file.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                            entry.getValue().addSubEvent(registryID, entry.getValue().createEventType(new JsonParser().parse(input).getAsJsonObject()));
+                            entry.getValue().addSubEvent(registryID, entry.getValue().createEventType(new JsonParser().parse(input)));
                             l++;
                         } catch (IOException e) {
                             throw new RuntimeException(e);
@@ -268,9 +297,6 @@ public class DPU {
                 }
                 System.out.println("Loaded " + l + " server-side events.");
             }
-        });
-        EVENT_TYPE.getKeys().forEach(k -> {
-            System.out.println(k.getValue());
         });
     }
 
@@ -281,7 +307,7 @@ public class DPU {
             if (ev_id.toString().startsWith("cl_")) {
                 DPUEvent action = type.getSubEvent(ev_id);
                 if (action != null) {
-                    action.doActionClient();
+                    action.doActionClient(false);
                 }
             }
         }
@@ -325,7 +351,7 @@ public class DPU {
             if (ev_id.toString().startsWith("cl_")) {
                 DPUEvent action = type.getSubEvent(ev_id);
                 if (action != null) {
-                    action.doActionClientAt(pos);
+                    action.doActionClientAt(pos, false);
                 }
             }
         }
@@ -335,7 +361,7 @@ public class DPU {
             if (ev_id.toString().startsWith("sv_")) {
                 DPUEvent action = type.getSubEvent(ev_id);
                 if (action != null) {
-                    action.doActionServerAt(world, owner, pos);
+                    action.doActionServerAt(world, owner, pos, false);
                 }
             }
         }

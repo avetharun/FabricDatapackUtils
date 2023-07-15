@@ -7,11 +7,24 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
+    maven { url 'https://jitpack.io' }
     // Add repositories to retrieve artifacts from in here.
     // You should only use this when depending on other mods because
     // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
+
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 dependencies {
@@ -22,7 +35,8 @@ dependencies {
 
         // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    implementation(files("lib/MixinExtras-0.1.1.jar"))
+    include implementation(files("lib/mixinextras-fabric-0.2.0-beta.8.jar"))
+    include annotationProcessor(files("lib/mixinextras-fabric-0.2.0-beta.8.jar"))
 }
 
 processResources {
@@ -96,6 +110,7 @@ publishing {
 }
 
 loom {
+    accessWidenerPath = file("src/main/resources/dpu.accesswidener")
     runs {
         //
         // This adds a new gradle task that runs the datagen API: "gradlew runDatagenClient"

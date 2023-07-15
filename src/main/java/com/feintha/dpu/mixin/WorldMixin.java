@@ -28,6 +28,11 @@ public class WorldMixin {
 
         boolean rainingLast = false;
         boolean thunderingLast = false;
+        @Inject(method="tick", at=@At("TAIL"))
+        void onTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci){
+            ServerWorld w = (ServerWorld) (Object)this;
+            DPU.InvokeServerEventFor(DPUEventType.RANDOM_WORLD_TICK, w.getDimensionKey().getValue(), w, null, true, w);
+        }
         @Inject(method="tickWeather", at=@At("TAIL"))
         void onTickWeather(CallbackInfo ci){
             boolean rC = worldProperties.isRaining();
@@ -65,7 +70,7 @@ public class WorldMixin {
         boolean rainingLast = false;
         boolean thunderingLast = false;
         @Inject(method="tickTime", at=@At("TAIL"))
-        void tickMixin(CallbackInfo ci){
+        void tickTimeMixin(CallbackInfo ci){
             boolean rC = clientWorldProperties.isRaining();
             boolean tC = clientWorldProperties.isThundering();
             World w = (World)(Object)this;
@@ -82,6 +87,11 @@ public class WorldMixin {
             rainingLast = rC;
             thunderingLast = tC;
 
+        }
+        @Inject(method="tick", at=@At("TAIL"))
+        void onTick(BooleanSupplier shouldKeepTicking, CallbackInfo ci){
+            World w = (World)(Object)this;
+            DPU.InvokeClientEventFor(DPUEventType.RANDOM_WORLD_TICK, w.getDimensionKey().getValue(), w);
         }
     }
 }

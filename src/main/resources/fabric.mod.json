@@ -11,7 +11,7 @@
     "repo": "https://github.com/avetharun/FabricDatapackUtils"
   },
   "license": "GPL-3.0",
-  "icon": "assets/dpu/icon.png",
+  "icon": "dpu.png",
   "environment": "*",
   "entrypoints": {
     "client": [
@@ -19,11 +19,9 @@
     ],
     "main": [
       "com.feintha.dpu.DatapackUtils"
-    ],
-    "fabric-datagen": [
-      "DataGeneration"
     ]
   },
+  "accessWidener" : "dpu.accesswidener",
   "mixins": [
     "dpu.mixins.json"
   ],

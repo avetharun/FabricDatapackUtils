@@ -3,6 +3,7 @@ package com.feintha.dpu.mixin;
 import com.feintha.dpu.*;
 import com.feintha.dpu.Events.DPUPlayerEvent;
 import com.feintha.dpu.client.DatapackUtilsClient;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
@@ -29,7 +30,7 @@ public class PlayerEntityMixin {
                 if (ev instanceof DPUPlayerEvent playerEvent) {
                     playerEvent.PutEntityData(_this);
                 }
-                ev.doActionClientAt(_this.getPos(), _this);
+                ev.doActionClientAt(_this.getPos(), false, _this);
             }
             lastJumpTick = DatapackUtilsClient.worldTick;
         } else {
@@ -38,7 +39,7 @@ public class PlayerEntityMixin {
                 if (ev instanceof DPUPlayerEvent playerEvent) {
                     playerEvent.PutEntityData(_this);
                 }
-                ev.doActionServerAt((ServerWorld) _this.getWorld(), _this, _this.getPos(), _this);
+                ev.doActionServerAt((ServerWorld) _this.getWorld(), _this, _this.getPos(), true, _this);
             }
             lastJumpTick = _this.getWorld().getServer().getTicks();
         }
@@ -50,7 +51,7 @@ public class PlayerEntityMixin {
                 if (ev instanceof DPUPlayerEvent playerEvent) {
                     playerEvent.PutEntityData(_this);
                 }
-                ev.doActionClientAt(_this.getPos(), _this);
+                ev.doActionClientAt(_this.getPos(), false, _this);
             }
         } else {
             var evs = DPU.getAllServerEventsFor(type);
@@ -58,7 +59,7 @@ public class PlayerEntityMixin {
                 if (ev instanceof DPUPlayerEvent playerEvent) {
                     playerEvent.PutEntityData(_this);
                 }
-                ev.doActionServerAt((ServerWorld) _this.getWorld(), _this, _this.getPos(), _this);
+                ev.doActionServerAt((ServerWorld) _this.getWorld(), _this, _this.getPos(), true, _this);
             }
         }
     }

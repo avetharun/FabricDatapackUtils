@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.lang.reflect.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ public class alib {
 
     // Checks if left is present and values equal in right.
     public static boolean checkNBTEquals(NbtCompound left, NbtCompound right) {
+        if (left.getSize() == right.getSize() && left.getSize() == 0) {return true;}
         boolean bl = true;
         for (String key : left.getKeys()) {
             if (!bl || !right.contains(key)) {return false;}
@@ -179,6 +181,21 @@ public class alib {
             throw new RuntimeException(e);
         }
     }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T extends Comparable> T parseInputString(String input, String format) {
+        assert format.startsWith("%");
+        String result = String.format(input,format);
+        return switch (format.charAt(format.length() - 1)) {
+            case 'd' -> (T)(Object)Double.parseDouble(result);
+            case 'f' -> (T)(Object)Float.parseFloat(result);
+            case 'i' -> (T)(Object)Integer.parseInt(result);
+            case 'b' -> (T)(Object)Boolean.parseBoolean(result);
+            case 'o' -> (T)(Object)Integer.parseInt(result,3);
+            // assume result is hex. Returns a string!!!
+            case 'h' -> (T)result;
+            default -> throw new IllegalStateException("Unexpected value: " + format.charAt(format.length() - 1));
+        };
+    }
     public static <T, R> R runMixinMethod(T mixinType, String methodName, Object ... args) {
         try {
             Class<?>[] argTypes = new Class<?>[args.length];
@@ -197,6 +214,45 @@ public class alib {
             throw new RuntimeException(e);
         }
     }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T, R> R runConstructor(Class mixinType, Object ... args) {
+        try {
+            Class<?>[] argTypes = new Class<?>[args.length];
+            for (int i = 0; i < args.length; i++) {
+                argTypes[i] = args[i].getClass();
+            }
+            Constructor f;
+            if (args.length > 0) {
+                f = mixinType.getConstructor(argTypes);
+            } else {
+                f = mixinType.getConstructor();
+            }
+            //noinspection unchecked
+            return (R)f.newInstance(args);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T, R> R runPrivateConstructor(Class mixinType, Object ... args) {
+        try {
+            Class<?>[] argTypes = new Class<?>[args.length];
+            for (int i = 0; i < args.length; i++) {
+                argTypes[i] = args[i].getClass();
+                System.out.println(argTypes[i]);
+            }
+            Constructor f;
+            if (args.length > 0) {
+                f = mixinType.getDeclaredConstructor(argTypes);
+            } else {
+                f = mixinType.getDeclaredConstructor();
+            }
+            f.setAccessible(true);
+            return (R)f.newInstance(args);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+            throw new RuntimeException(e);
+        }
+    }
     public static <T, R> R runPrivateMixinMethod(T mixinType, String methodName, Object ... args) {
         try {
             Class<?>[] argTypes = new Class<?>[args.length];
@@ -209,6 +265,7 @@ public class alib {
             } else {
                 f = mixinType.getClass().getDeclaredMethod(methodName);
             }
+            f.setAccessible(true);
             //noinspection unchecked
             return (R)f.invoke(mixinType, args);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {

@@ -1,19 +1,16 @@
-===============
-Fabric Datapack Utils - DPU
-===============
-
-.. image:: mod_logo.png
-   :align: center
-
+|ico1| Fabric Datapack Utils
+########################
 .. contents:: Table of Contents
    :depth: 2
-
+.. |ico1| image:: dpu.png
+   :height: 2ex
+   :class: no-scaled-link
 
 
 Introduction
 ============
 
-Welcome to the documentation for Fabric Datapack Utils! This mod is designed to enhance your Minecraft experience by adding support for various features not found in vanilla datapack commands.
+Welcome to the documentation for Fabric Datapack Utils! This mod is designed to modify Minecraft datapack functions and resources to help in creating large datapack projects.
 
 - `Overall API  </api>`_
 - `Modifications to Vanilla  </vanilla-mods>`_

@@ -19,5 +19,6 @@ Events
 
 Client-sided utilities
 -------
+- `Custom book foreground and background textures </api/gui/books>`_
 
 - `Item model overrides when rendering </item_model_overrides>`_

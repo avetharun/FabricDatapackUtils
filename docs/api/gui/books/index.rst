@@ -16,6 +16,8 @@ Adding a custom foreground layer to a page:
   ]
 
 The identifiers do not require a .png at the end! It will add automatically.
+
+
 An example of the NBT for a book would be as follows:
 ::
   pages:['{"text":"test"},"background":"custom:textures/gui/my_custom_book_texture"']

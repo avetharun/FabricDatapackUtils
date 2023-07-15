@@ -1,6 +1,5 @@
-
-.. rubric:: |ico1| Fabric Datapack Utils
-
+|ico1| Fabric Datapack Utils
+########################
 .. contents:: Table of Contents
    :depth: 2
 .. |ico1| image:: dpu.png

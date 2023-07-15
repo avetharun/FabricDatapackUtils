@@ -1,12 +1,14 @@
-|ico1| Fabric Datapack Utils - DPU
+.. |ico1| image:: dpu.png
+   :height: 2ex
+   :class: no-scaled-link
+
+
+\ |ico1| Fabric Datapack Utils - DPU
 ===============
 
 
-.. |ico1| image:: dpu.png
 .. contents:: Table of Contents
    :depth: 2
-
-
 
 Introduction
 ============

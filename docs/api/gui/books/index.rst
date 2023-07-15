@@ -6,7 +6,7 @@ These methods of modifying the written book is per-page! If you want to use it f
 Adding a custom background to a page:
 ::
   "pages":[
-    '{"texture":"namespace:textures/gui/book"}'
+    '{"background":"namespace:textures/gui/book"}'
   ]
 
 Adding a custom foreground layer to a page:
@@ -16,3 +16,6 @@ Adding a custom foreground layer to a page:
   ]
 
 The identifiers do not require a .png at the end! It will add automatically.
+An example of the NBT for a book would be as follows:
+::
+  pages:['{"text":"test"},"background":"custom:textures/gui/my_custom_book_texture"']

@@ -2,8 +2,8 @@
 Fabric Datapack Utils - DPU
 ===============
 
-.. image:: mod_logo.png
-   :align: center
+.. image:: dpu.png
+   :align: left
 
 .. contents:: Table of Contents
    :depth: 2

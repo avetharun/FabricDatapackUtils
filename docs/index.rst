@@ -1,10 +1,8 @@
-===============
-Fabric Datapack Utils - DPU
+|ico1| Fabric Datapack Utils - DPU
 ===============
 
-.. image:: dpu.png
-   :align: left
 
+.. |ico1| image:: dpu.png
 .. contents:: Table of Contents
    :depth: 2
 
